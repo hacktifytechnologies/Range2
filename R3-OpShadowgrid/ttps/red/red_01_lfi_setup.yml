@@ -1,0 +1,46 @@
+- name: 'Setup: Deploy LFI-Vulnerable PHP Web Application (M1)'
+  description: >-
+    Configures M1 (nova-web) with an Apache2 + PHP web application containing a
+    Local File Inclusion vulnerability in view.php. Sets up a world-readable custom
+    Apache log file to enable log poisoning attacks. Creates the flag file and hint.
+    Run this TTP on M1 before the exercise to establish the vulnerable environment.
+  tactic: resource-development
+  technique_id: T1608.001
+  technique_name: 'Stage Capabilities: Upload Malware'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >-
+      echo "[RED] Configuring LFI vulnerability on nova-web";
+      apt-get install -y apache2 php libapache2-mod-php -qq 2>/dev/null;
+      mkdir -p /var/www/html/pages /var/www/html/secret /var/www/html/assets;
+      cat > /var/www/html/view.php << 'PHPEOF'
+      <?php $page = $_GET['page'] ?? 'pages/home.php'; $page = str_replace('../', '', $page); include($page); ?>
+      PHPEOF
+      cat > /var/www/html/secret/flag1.txt << 'EOF'
+      FLAG{setup_placeholder_lfi}
+      EOF
+      touch /var/log/novatech_access.log;
+      chmod 644 /var/log/novatech_access.log;
+      chown www-data:adm /var/log/novatech_access.log;
+      echo 'CustomLog /var/log/novatech_access.log combined' >> /etc/apache2/sites-available/000-default.conf;
+      chown -R www-data:www-data /var/www/html/;
+      systemctl restart apache2;
+      echo "[RED] LFI environment ready on $(hostname)"
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 120
+    parsers: []
+    cleanup:
+    - systemctl stop apache2
+    - rm -rf /var/www/html/secret /var/www/html/view.php
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1

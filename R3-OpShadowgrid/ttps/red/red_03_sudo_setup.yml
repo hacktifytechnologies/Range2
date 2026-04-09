@@ -1,0 +1,46 @@
+- name: 'Setup: Configure Sudo Misconfiguration for devops User (M3)'
+  description: >-
+    Configures M3 (nova-gateway) with a misconfigured sudoers rule that grants
+    the devops user NOPASSWD access to /usr/bin/vim — a classic GTFOBins privilege
+    escalation vector. Creates the devops user with credentials matching those exposed
+    by M2's FTP server. Sets up the flag file and credentials hint for M4.
+  tactic: privilege-escalation
+  technique_id: T1548.003
+  technique_name: 'Abuse Elevation Control Mechanism: Sudo and Sudo Caching'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >-
+      echo "[RED] Configuring sudo misconfiguration on nova-gateway";
+      apt-get install -y openssh-server vim -qq 2>/dev/null;
+      id devops 2>/dev/null || useradd -m -s /bin/bash devops;
+      echo "devops:N0vaTech@24" | chpasswd;
+      mkdir -p /etc/sudoers.d;
+      echo "devops ALL=(ALL) NOPASSWD: /usr/bin/vim" > /etc/sudoers.d/novatech-devops;
+      chmod 440 /etc/sudoers.d/novatech-devops;
+      echo "FLAG{setup_placeholder_sudo}" > /root/flag3.txt;
+      chmod 600 /root/flag3.txt;
+      printf "[NovaTech Notes]
+M4 SSH: backup:Backups3cure
+" > /root/secrets.txt;
+      chmod 600 /root/secrets.txt;
+      sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config;
+      systemctl restart sshd;
+      echo "[RED] Sudo misconfiguration deployed on $(hostname)"
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 120
+    parsers: []
+    cleanup:
+    - rm -f /etc/sudoers.d/novatech-devops
+    - userdel -r devops
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3

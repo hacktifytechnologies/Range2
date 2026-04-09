@@ -1,0 +1,53 @@
+- name: 'Setup: Create World-Writable Root Cron Script (M4)'
+  description: >-
+    Configures M4 (nova-scheduler) with a root-owned cron job that executes a
+    world-writable shell script every minute. This simulates a debug configuration
+    that was never reverted, allowing any local user to inject commands into the
+    root execution context by appending to the script.
+  tactic: persistence
+  technique_id: T1053.003
+  technique_name: 'Scheduled Task/Job: Cron'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >-
+      echo "[RED] Configuring world-writable cron script on nova-scheduler";
+      apt-get install -y openssh-server cron -qq 2>/dev/null;
+      id backup 2>/dev/null || useradd -m -s /bin/bash backup;
+      echo "backup:Backups3cure" | chpasswd;
+      mkdir -p /opt/scripts;
+      printf '#!/bin/bash
+echo "[$(date)] Maintenance OK" >> /var/log/maintenance.log
+find /tmp -mtime +7 -delete 2>/dev/null
+' > /opt/scripts/maintenance.sh;
+      chmod 777 /opt/scripts/maintenance.sh;
+      chown root:root /opt/scripts/maintenance.sh;
+      grep -qF "maintenance.sh" /etc/crontab || echo "* * * * * root /opt/scripts/maintenance.sh" >> /etc/crontab;
+      touch /var/log/maintenance.log && chmod 644 /var/log/maintenance.log;
+      echo "FLAG{setup_placeholder_cron}" > /root/flag4.txt;
+      chmod 600 /root/flag4.txt;
+      printf "[NovaTech Notes]
+M5 SSH: archivist:Arch1v1st99
+" > /root/secrets.txt;
+      chmod 600 /root/secrets.txt;
+      sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config;
+      systemctl restart sshd && systemctl enable cron;
+      echo "[RED] Cron misconfiguration deployed on $(hostname)"
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 120
+    parsers: []
+    cleanup:
+    - chmod 755 /opt/scripts/maintenance.sh
+    - sed -i '/maintenance.sh/d' /etc/crontab
+    - userdel -r backup
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4

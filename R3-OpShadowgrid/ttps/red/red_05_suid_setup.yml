@@ -1,0 +1,67 @@
+- name: 'Setup: Compile and Deploy SUID Binary with Path Traversal Vuln (M5)'
+  description: >-
+    Configures M5 (nova-archive) by compiling a custom SUID root binary (safereader)
+    from source. The binary contains a flawed strstr() path validation that can be
+    bypassed with directory traversal, allowing any user to read arbitrary files as root.
+    Creates the archivist user, archive directory, sample files, and the final challenge flag.
+  tactic: privilege-escalation
+  technique_id: T1548.001
+  technique_name: 'Abuse Elevation Control Mechanism: Setuid and Setgid'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >-
+      echo "[RED] Deploying SUID binary on nova-archive";
+      apt-get install -y openssh-server gcc build-essential -qq 2>/dev/null;
+      id archivist 2>/dev/null || useradd -m -s /bin/bash archivist;
+      echo "archivist:Arch1v1st99" | chpasswd;
+      mkdir -p /opt/archive /usr/local/bin;
+      echo "Q3 Report: Revenue 14.2M" > /opt/archive/quarterly_report.txt;
+      echo "System Status: All operational" > /opt/archive/system_status.txt;
+      chmod 755 /opt/archive && chmod 644 /opt/archive/*.txt;
+      cat > /tmp/safereader_build.c << 'CEOF'
+      #include <stdio.h>
+      #include <stdlib.h>
+      #include <string.h>
+      #include <errno.h>
+      #define APPROVED_DIR "/opt/archive"
+      int main(int argc, char *argv[]) {
+        if (argc != 2) { fprintf(stderr, "Usage: %s <document_path>
+Approved: %s
+", argv[0], APPROVED_DIR); return 1; }
+        if (strstr(argv[1], APPROVED_DIR) == NULL) { fprintf(stderr, "[ACCESS DENIED] Path must contain %s
+", APPROVED_DIR); return 1; }
+        FILE *fp = fopen(argv[1], "r"); if (!fp) { fprintf(stderr, "Cannot open: %s
+", strerror(errno)); return 1; }
+        char buf[4096]; size_t n;
+        while ((n = fread(buf, 1, sizeof(buf), fp)) > 0) fwrite(buf, 1, n, stdout);
+        fclose(fp); return 0;
+      }
+      CEOF
+      gcc -o /usr/local/bin/safereader /tmp/safereader_build.c -Wall 2>/dev/null;
+      rm -f /tmp/safereader_build.c;
+      chown root:root /usr/local/bin/safereader;
+      chmod 4755 /usr/local/bin/safereader;
+      echo "FLAG{setup_placeholder_suid}" > /root/flag5.txt;
+      chmod 600 /root/flag5.txt;
+      sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config;
+      systemctl restart sshd;
+      echo "[RED] SUID binary deployed on $(hostname) - verify: ls -la /usr/local/bin/safereader"
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 180
+    parsers: []
+    cleanup:
+    - chmod -s /usr/local/bin/safereader
+    - rm -f /usr/local/bin/safereader
+    - userdel -r archivist
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5

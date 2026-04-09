@@ -1,0 +1,53 @@
+- name: 'Setup: Configure Anonymous FTP with Credential Exposure (M2)'
+  description: >-
+    Configures M2 (nova-ftpvault) with vsftpd and enables anonymous FTP access.
+    Drops a staff handover file containing SSH credentials for M3 in the FTP root.
+    Creates the challenge flag file. This misconfiguration simulates a real-world
+    scenario where an FTP server was left with anonymous access enabled after a migration.
+  tactic: resource-development
+  technique_id: T1078.001
+  technique_name: 'Valid Accounts: Default Accounts'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >-
+      echo "[RED] Configuring anonymous FTP on nova-ftpvault";
+      apt-get install -y vsftpd -qq 2>/dev/null;
+      mkdir -p /srv/ftp;
+      cat > /srv/ftp/staff_handover.txt << 'EOF'
+      [NovaTech IT Handover] SSH Gateway - User: devops | Pass: N0vaTech@24 (sudo vim access enabled)
+      EOF
+      echo "FLAG{setup_placeholder_ftp}" > /srv/ftp/flag2.txt;
+      echo "NovaTech File Share - Contact storage-team@novatech.internal" > /srv/ftp/README.txt;
+      chmod 755 /srv/ftp && chmod 644 /srv/ftp/*.txt;
+      cat > /etc/vsftpd.conf << 'VSEOF'
+      listen=YES
+      listen_ipv6=NO
+      anonymous_enable=YES
+      local_enable=YES
+      write_enable=NO
+      anon_root=/srv/ftp
+      xferlog_enable=YES
+      xferlog_file=/var/log/vsftpd.log
+      ftpd_banner=NovaTech Industries File Share v2.1
+      VSEOF
+      systemctl restart vsftpd && systemctl enable vsftpd;
+      echo "[RED] Anonymous FTP configured on $(hostname)"
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 120
+    parsers: []
+    cleanup:
+    - sed -i 's/anonymous_enable=YES/anonymous_enable=NO/' /etc/vsftpd.conf
+    - systemctl restart vsftpd
+    - rm -f /srv/ftp/staff_handover.txt
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
