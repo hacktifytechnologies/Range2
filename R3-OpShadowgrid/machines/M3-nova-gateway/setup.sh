@@ -44,8 +44,8 @@ chmod 600 /root/secrets.txt
 # ---------- SSH config ----------
 sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-systemctl restart sshd
-systemctl enable sshd
+systemctl restart ssh
+systemctl enable ssh
 
 # ---------- Record flag ----------
 echo "========================================" >> /root/ctf_setup_log.txt
