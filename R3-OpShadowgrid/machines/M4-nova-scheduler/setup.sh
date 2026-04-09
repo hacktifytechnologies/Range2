@@ -10,11 +10,11 @@ echo "[*] Setting up M4 - nova-scheduler (Cron Hijacking Challenge)"
 apt-get update -qq
 DEBIAN_FRONTEND=noninteractive apt-get install -y openssh-server cron 2>/dev/null
 
-# ---------- Create backup user ----------
-if ! id "backup" &>/dev/null; then
-    useradd -m -s /bin/bash backup
+# ---------- Create backupp user ----------
+if ! id "backupp" &>/dev/null; then
+    useradd -m -s /bin/bash backupp
 fi
-echo "backup:Backups3cure" | chpasswd
+echo "backupp:Backups3cure" | chpasswd
 
 # ---------- Create world-writable cron script ----------
 mkdir -p /opt/scripts
@@ -59,8 +59,8 @@ chmod 600 /root/secrets.txt
 # ---------- SSH config ----------
 sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-systemctl restart sshd
-systemctl enable sshd
+systemctl restart ssh
+systemctl enable ssh
 systemctl enable cron
 
 # Create maintenance log
