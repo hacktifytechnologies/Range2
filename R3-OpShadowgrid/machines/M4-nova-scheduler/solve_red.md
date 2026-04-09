@@ -2,14 +2,14 @@
 
 **Challenge:** World-Writable Cron Script → Root Privilege Escalation  
 **Technique:** T1053.003 — Scheduled Task/Job: Cron  
-**Entry Point:** SSH as `backup` / `Backups3cure`
+**Entry Point:** SSH as `backupp` / `Backups3cure`
 
 ---
 
 ## Step 1 — SSH Login
 
 ```bash
-ssh backup@<M4-IP>
+ssh backupp@<M4-IP>
 # Password: Backups3cure
 ```
 
